@@ -1,3 +1,10 @@
+"""
+Program: address_book.py
+Author: Kelly Klein
+Last date modified: 7/29/2020
+This program will use a gui to get user input and display
+    a list as an address book
+"""
 import sqlite3
 from sqlite3 import Error
 import tkinter as tk
@@ -24,6 +31,7 @@ zipcode_text_edit = ''
 """
 
 
+# connect to a database
 def create_connection(db):
     """ Connect to a SQLite database
     :param db: filename of database
@@ -36,6 +44,7 @@ def create_connection(db):
     return None
 
 
+# create the tree
 def create_table(conn, sql_create_table):
     """ Creates table with give sql statement
     :param conn: Connection object
@@ -98,14 +107,11 @@ def update_person(conn, person):
     :param person
     """
     record_id = select_box_text.get()
-    sql = '''UPDATE person SET (first_name, last_name, phone, birthday)
-                    VALUES(?, ?, ?, ?)
-                    WHERE oid =''' + record_id
-
-    sql1 = '''UPDATE person SET firstname = ?,
+    sql = '''UPDATE person SET first_name = ?,
                                 last_name = ?,
                                 phone = ?,
-                                birthday = ?'''
+                                birthday = ?
+                            WHERE oid=''' + record_id
 
     cur = conn.cursor()
     cur.execute(sql, person)
@@ -130,13 +136,17 @@ def update_address(conn, address):
     :param address
     """
     record_id = select_box_text.get()
-    sql = '''UPDATE address SET (address, city, state, zipcode)
-                    VALUES(?, ?, ?, ?)
-                    WHERE oid =''' + record_id
+    sql = '''UPDATE address SET address = ?,
+                                city = ?,
+                                state = ?,
+                                zipcode = ?
+                            WHERE oid=''' + record_id
 
     cur = conn.cursor()
     cur.execute(sql, address)
     conn.commit()
+    edit_window.destroy()
+
 
 # create function to submit records
 def add_record():
@@ -186,15 +196,20 @@ def see_address_book():
     for address in address:
         print_address += str(address) + "\n"
 
-    show_people_label = tk.Label(window, text=print_people).grid(row=15, column=0)
-    show_address_label = tk.Label(window, text=print_address).grid(row=15, column=1)
+    show_people_label = tk.Label(window, text=print_people)
+    show_people_label.grid(row=15, column=0)
+    show_address_label = tk.Label(window, text=print_address)
+    show_address_label.grid(row=15, column=1)
 
     conn.commit()
+    conn1.commit()
+    conn.close()
     conn.close()
     return
 
 
 def edit_entry():
+    global edit_window
     edit_window = tk.Tk()
     edit_window.title('Edit or update an Entry')
 
@@ -300,6 +315,9 @@ def delete_entry():
 
     conn1.commit()
 
+    see_address_book()
+
+    select_box.delete(0, END)
 
 
 window = tk.Tk()
