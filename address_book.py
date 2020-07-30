@@ -31,7 +31,7 @@ zipcode_text_edit = ''
 """
 
 
-# connect to a database
+# connect to database
 def create_connection(db):
     """ Connect to a SQLite database
     :param db: filename of database
@@ -44,7 +44,7 @@ def create_connection(db):
     return None
 
 
-# create the tree
+# create table
 def create_table(conn, sql_create_table):
     """ Creates table with give sql statement
     :param conn: Connection object
@@ -58,6 +58,7 @@ def create_table(conn, sql_create_table):
         print(e)
 
 
+# create the tables for this specific database/application
 def create_tables(database):
     sql_create_person_table = """ CREATE TABLE IF NOT EXISTS person (
                                         id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -150,6 +151,8 @@ def update_address(conn, address):
 
 # create function to submit records
 def add_record():
+    """create a record/row in the table
+    """
     add_person_label = tk.Label(window, text="Person added").grid(row=15, column=1)
 
     conn = sqlite3.connect('address_book.db')
@@ -177,6 +180,7 @@ def add_record():
     zipcode.delete(0, END)
 
 
+# view the contents of the tables
 def see_address_book():
     conn = sqlite3.connect('address_book.db')
     cur = conn.cursor()
@@ -204,7 +208,7 @@ def see_address_book():
     conn.commit()
     conn1.commit()
     conn.close()
-    conn.close()
+    conn1.close()
     return
 
 
