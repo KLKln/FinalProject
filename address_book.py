@@ -1,14 +1,15 @@
 """
 Program: address_book.py
 Author: Kelly Klein
-Last date modified: 7/29/2020
+Last date modified: 8/2/2020
 This program will use a gui to get user input and display
     a list as an address book
 """
 import sqlite3
+import datetime
 from sqlite3 import Error
 import tkinter as tk
-from tkinter import END
+from tkinter import END, messagebox
 
 first_name_text = ''
 last_name_text = ''
@@ -19,16 +20,68 @@ city_text = ''
 state_text = ''
 zipcode_text = ''
 
-"""
-first_name_text_edit = ''
-last_name_text_edit = ''
-phone_text_edit = ''
-birthday_text_edit = ''
-address_text_edit = ''
-city_text_edit = ''
-state_text_edit = ''
-zipcode_text_edit = ''
-"""
+date_format = '%m/%d/%Y'
+state_list = ['AL',
+              'AK',
+              'AS',
+              'AZ',
+              'AR',
+              'CA',
+              'CO',
+              'CT',
+              'DE',
+              'DC',
+              'FM',
+              'FL',
+              'GA',
+              'GU',
+              'HI',
+              'ID',
+              'IL',
+              'IN',
+              'IA',
+              'KS',
+              'KY',
+              'LA',
+              'ME',
+              'MH',
+              'MD',
+              'MA',
+              'MI',
+              'MN',
+              'MS,'
+              'MO',
+              'MT',
+              'NE',
+              'NV',
+              'NH',
+              'NJ',
+              'NM',
+              'NY',
+              'NC',
+              'ND',
+              'MP',
+              'OH',
+              'OK',
+              'OR',
+              'PW',
+              'PA',
+              'PR',
+              'RI',
+              'SC',
+              'SD',
+              'TN',
+              'TX',
+              'UT',
+              'VT',
+              'VI',
+              'VA',
+              'WA',
+              'WV',
+              'WI',
+              'WY']
+
+num_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 
 # connect to database
@@ -69,12 +122,13 @@ def create_tables(database):
                                     ); """
 
     sql_create_address_table = """ CREATE TABLE IF NOT EXISTS address(
-                                        id integer PRIMARY KEY AUTOINCREMENT,
-                                        address text,
-                                        city text,
-                                        state text,
-                                        zipcode text,
-                                        FOREIGN KEY (id) REFERENCES person (id)
+                                        id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+                                        address text NOT NULL,
+                                        city text NOT NULL,
+                                        state text NOT NULL,
+                                        zipcode text NOT NULL,
+                                        FOREIGN KEY (id) 
+                                            REFERENCES person (id)
                                     ); """
 
     # create a database connection
@@ -88,6 +142,7 @@ def create_tables(database):
         print("Unable to connect to " + str(database))
 
 
+# create person to insert into database
 def create_person(conn, person):
     """create person for table
     :param conn:
@@ -102,6 +157,7 @@ def create_person(conn, person):
     return cur.lastrowid
 
 
+# calls a person from the person database to edit information
 def update_person(conn, person):
     """update an existing record in the table
     :param conn:
@@ -119,6 +175,7 @@ def update_person(conn, person):
     conn.commit()
 
 
+# creates an address to insert into the database
 def create_address(conn, address):
     """create address for table
     :param conn:
@@ -131,6 +188,7 @@ def create_address(conn, address):
     return cur.lastrowid
 
 
+# calls an address from the address table to edit information
 def update_address(conn, address):
     """update an existing record in the table
     :param conn:
@@ -150,20 +208,96 @@ def update_address(conn, address):
 
 
 # create function to submit records
+class InvalidNameException(Exception):
+    pass
+
+
+class InvalidPhoneNumberFormat(Exception):
+    pass
+
+
+class InvalidBirthDateFormat(Exception):
+    pass
+
+
+# gets information from gui to add a record to the person and address databases
+class InvalidAddressException(Exception):
+    pass
+
+
+class InvalidCityException(Exception):
+    pass
+
+
+class InvalidStateException(Exception):
+    pass
+
+
+class ZipcodeException(Exception):
+    pass
+
+# gets information from gui to add a record to the person and address databases
 def add_record():
     """create a record/row in the table
     """
-    add_person_label = tk.Label(window, text="Person added").grid(row=15, column=1)
 
     conn = sqlite3.connect('address_book.db')
-    insert_person_tuple = (first_name_text.get(), last_name_text.get(), phone_text.get(), birthday_text.get())
     with conn:
-        create_person(conn, insert_person_tuple)
+        if not first_name_text.get().isalpha():
+            messagebox.showerror("first name error!", "Alphabet Characters Only")
+            raise InvalidNameException("Alphabet characters only!")
+        if not last_name_text.get().isalpha():
+            messagebox.showerror("last name error!", "Alphabet Characters Only")
+            raise InvalidNameException("Alphabet characters only!")
+        if len(phone_text.get()) != 12:
+            messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
+            raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
+        for i, c in enumerate(phone_text.get()):
+            if i in [3, 7]:
+                if c != '-':
+                    messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
+                    raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
+            elif not c.isalnum():
+                messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
+                raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
+        if datetime.datetime.strptime(birthday_text.get(), '%m/%d/%Y') != datetime.datetime.strptime(
+                birthday_text.get(), date_format):
+            messagebox.showerror("Birthday Format Error!", 'birthday format "mm/dd/yyyy" only!')
+            raise InvalidBirthDateFormat('birthday format mm/dd/yyyy only!')
+        else:
+            phone_checked = phone_text.get()
+            first_name_checked = first_name_text.get()
+            last_name_checked = last_name_text.get()
+            birthday_checked = birthday_text.get()
+            insert_person_tuple = (first_name_checked, last_name_checked, phone_checked, birthday_checked)
+            create_person(conn, insert_person_tuple)
 
     conn1 = sqlite3.connect('address_book.db')
-    insert_address_tuple = (address_text.get(), city_text.get(), state_text.get(), zipcode_text.get())
     with conn1:
-        create_address(conn1, insert_address_tuple)
+        if not city_text.get().isalpha():
+            messagebox.showerror("City Error!", "city must be alphabet characters only")
+            raise InvalidCityException("City must be alphabet characters only")
+        if state_text.get() not in state_list:
+            messagebox.showerror("State Error!", "state mist be in capitalized abbreviated form only!")
+            raise InvalidStateException("State must be in capitalized abbreviated form only!")
+        if len(zipcode_text.get()) != 5:
+            print(len(zipcode_text.get()))
+            messagebox.showerror("Zipcode Length Error!", "Only five digits allowed!")
+            raise ZipcodeException("Zipcode can be 5 digits only!")
+        for i in zipcode_text.get():
+            if i not in num_list:
+                messagebox.showerror("Zipcode Character Error!", "Zipcode can only be five digits!")
+                raise ZipcodeException("Zipcode can be 5 numbers only!")
+        else:
+            address_checked = address_text.get()
+            city_checked = city_text.get()
+            state_checked = state_text.get()
+            zipcode_checked = zipcode_text.get()
+            insert_address_tuple = (address_checked, city_checked, state_checked, zipcode_checked)
+            create_address(conn1, insert_address_tuple)
+            add_person_label = tk.Label(window, text="Person added").grid(row=15, column=1)
+            add_address_label = tk.Label(window, text="Address added").grid(row=16, column=1)
+
 
     conn.commit()
     conn1.commit()
@@ -201,9 +335,9 @@ def see_address_book():
         print_address += str(address) + "\n"
 
     show_people_label = tk.Label(window, text=print_people)
-    show_people_label.grid(row=15, column=0)
+    show_people_label.grid(row=17, column=0)
     show_address_label = tk.Label(window, text=print_address)
-    show_address_label.grid(row=15, column=1)
+    show_address_label.grid(row=17, column=1)
 
     conn.commit()
     conn1.commit()
@@ -212,6 +346,7 @@ def see_address_book():
     return
 
 
+# gui for user to edit information
 def edit_entry():
     global edit_window
     edit_window = tk.Tk()
@@ -288,24 +423,73 @@ def edit_entry():
         zipcode_edit.insert(0, address[4])
 
 
+# connects to database and saves new/updated information
 def save_entry():
     conn = sqlite3.connect('address_book.db')
 
-    insert_person_tuple = (first_name_text_edit.get(), last_name_text_edit.get(), phone_text_edit.get(), birthday_text_edit.get())
     with conn:
-        update_person(conn, insert_person_tuple)
+        if not first_name_text_edit.get().isalpha():
+            messagebox.showerror("first name error!", "Alphabet Characters Only")
+            raise InvalidNameException("Alphabet characters only!")
+        if not last_name_text_edit.get().isalpha():
+            messagebox.showerror("last name error!", "Alphabet Characters Only")
+            raise InvalidNameException("Alphabet characters only!")
+        if len(phone_text_edit.get()) != 12:
+            messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
+            raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
+        for i, c in enumerate(phone_text_edit.get()):
+            if i in [3, 7]:
+                if c != '-':
+                    messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
+                    raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
+            elif not c.isalnum():
+                messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
+                raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
+        if datetime.datetime.strptime(birthday_text_edit.get(), '%m/%d/%Y') != datetime.datetime.strptime(
+                birthday_text_edit.get(), date_format):
+            messagebox.showerror("Birthday Format Error!", 'birthday format "mm/dd/yyyy" only!')
+            raise InvalidBirthDateFormat('birthday format mm/dd/yyyy only!')
+        else:
+            phone_checked = phone_text_edit.get()
+            first_name_checked = first_name_text_edit.get()
+            last_name_checked = last_name_text_edit.get()
+            birthday_checked = birthday_text_edit.get()
+
+            insert_person_tuple = (first_name_checked, last_name_checked, phone_checked, birthday_checked)
+            update_person(conn, insert_person_tuple)
 
     conn.commit()
 
     conn1 = sqlite3.connect('address_book.db')
 
-    insert_address_tuple = (address_text_edit.get(), city_text_edit.get(), state_text_edit.get(), zipcode_text_edit.get())
     with conn1:
-        update_address(conn, insert_address_tuple)
+        if not city_text_edit.get().isalpha():
+            messagebox.showerror("City Error!", "city must be alphabet characters only")
+            raise InvalidCityException("City must be alphabet characters only")
+        if state_text_edit.get() not in state_list:
+            messagebox.showerror("State Error!", "state mist be in capitalized abbreviated form only!")
+            raise InvalidStateException("State must be in capitalized abbreviated form only!")
+        if len(zipcode_text_edit.get()) != 5:
+            print(len(zipcode_text_edit.get()))
+            messagebox.showerror("Zipcode Length Error!", "Only five digits allowed!")
+            raise ZipcodeException("Zipcode can be 5 digits only!")
+        for i in zipcode_text_edit.get():
+            if i not in num_list:
+                messagebox.showerror("Zipcode Character Error!", "Zipcode can only be five digits!")
+                raise ZipcodeException("Zipcode can be 5 numbers only!")
+        else:
+            address_checked = address_text.get()
+            city_checked = city_text.get()
+            state_checked = state_text.get()
+            zipcode_checked = zipcode_text.get()
+            insert_address_tuple = (address_checked, city_checked, state_checked, zipcode_checked)
+            create_address(conn1, insert_address_tuple)
+            update_address(conn, insert_address_tuple)
 
     conn1.commit()
 
 
+# removes an entry if the user types the id
 def delete_entry():
     conn = sqlite3.connect('address_book.db')
     cur = conn.cursor()
@@ -318,6 +502,12 @@ def delete_entry():
     cur1.execute("DELETE from address WHERE oid =" + select_box_text.get())
 
     conn1.commit()
+
+    conn2 = sqlite3.connect('address_book.db')
+    cur2 = conn2.cursor()
+    cur2.execute("DELETE from person WHERE oid =" + select_box_text.get())
+
+    conn2.commit()
 
     see_address_book()
 
@@ -337,7 +527,6 @@ tk.Label(window, text="City: ").grid(row=5, column=0)
 tk.Label(window, text="State: ").grid(row=6, column=0)
 tk.Label(window, text="Zipcode: ").grid(row=7, column=0)
 tk.Label(window, text="Enter id to delete or edit: ").grid(row=12, column=0)
-
 
 # create textboxes
 first_name_text = tk.StringVar()
@@ -368,14 +557,16 @@ select_box_text = tk.StringVar()
 select_box = tk.Entry(window, textvariable=select_box_text)
 select_box.grid(row=12, column=1)
 
-
 # create buttons
 add_entry_button = tk.Button(window, text="Add Record", command=add_record).grid(row=8, column=0, columnspan=2)
-create_db_table_button = tk.Button(window, text="Create Database and Table", command=lambda: [create_connection('address_book.db'), create_tables('address_book.db')]).grid(row=9, column=0, columnspan=2)
-show_entries_button = tk.Button(window, text="See address book", command=see_address_book).grid(row=10, column=0, columnspan=2)
+create_db_table_button = tk.Button(window, text="Create Database and Table",
+                                   command=lambda: [create_connection('address_book.db'),
+                                                    create_tables('address_book.db')]).grid(row=9, column=0,
+                                                                                            columnspan=2)
+show_entries_button = tk.Button(window, text="See address book", command=see_address_book).grid(row=10, column=0,
+                                                                                                columnspan=2)
 program_exit_button = tk.Button(window, text="Exit", command=window.quit).grid(row=11, column=0, columnspan=2)
 edit_button = tk.Button(window, text='Edit entry', command=edit_entry).grid(row=13, column=0, columnspan=2)
 delete_button = tk.Button(window, text='Delete entry', command=delete_entry).grid(row=14, column=0, columnspan=2)
 
 window.mainloop()
-
