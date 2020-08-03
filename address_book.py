@@ -476,12 +476,13 @@ def save_entry():
             """
 
     conn.commit()
+    conn.close()
 
     conn1 = sqlite3.connect('address_book.db')
 
     insert_address_tuple = (address_text_edit.get(), city_text_edit.get(), state_text_edit.get(), zipcode_text_edit.get())
     with conn1:
-        update_address(conn, insert_address_tuple)
+        update_address(conn1, insert_address_tuple)
 
     """
     with conn1:
@@ -510,6 +511,7 @@ def save_entry():
             """
 
     conn1.commit()
+    conn1.close()
 
     edit_window.destroy()
 
@@ -521,18 +523,21 @@ def delete_entry():
     cur.execute("DELETE from person WHERE oid =" + select_box_text.get())
 
     conn.commit()
+    conn.close()
 
     conn1 = sqlite3.connect('address_book.db')
     cur1 = conn1.cursor()
     cur1.execute("DELETE from address WHERE oid =" + select_box_text.get())
 
     conn1.commit()
+    conn1.close()
 
     conn2 = sqlite3.connect('address_book.db')
     cur2 = conn2.cursor()
     cur2.execute("DELETE from person WHERE oid =" + select_box_text.get())
 
     conn2.commit()
+    conn2.close()
 
     see_address_book()
 
