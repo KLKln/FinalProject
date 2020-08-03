@@ -20,6 +20,17 @@ city_text = ''
 state_text = ''
 zipcode_text = ''
 
+"""
+first_name_text_edit = ''
+last_name_text_edit = ''
+phone_text_edit = ''
+birthday_text_edit = ''
+address_text_edit = ''
+city_text_edit = ''
+state_text_edit = ''
+zipcode_text_edit = ''
+"""
+
 date_format = '%m/%d/%Y'
 state_list = ['AL',
               'AK',
@@ -204,7 +215,6 @@ def update_address(conn, address):
     cur = conn.cursor()
     cur.execute(sql, address)
     conn.commit()
-    edit_window.destroy()
 
 
 # create function to submit records
@@ -235,6 +245,7 @@ class InvalidStateException(Exception):
 
 class ZipcodeException(Exception):
     pass
+
 
 # gets information from gui to add a record to the person and address databases
 def add_record():
@@ -374,35 +385,34 @@ def edit_entry():
     tk.Label(edit_window, text="Zipcode: ").grid(row=7, column=0)
 
     global first_name_text_edit
-    global last_name_text_edit
-    global phone_text_edit
-    global birthday_text_edit
-    global address_text_edit
-    global city_text_edit
-    global state_text_edit
-    global zipcode_text_edit
-
     first_name_text_edit = tk.StringVar()
     first_name_edit = tk.Entry(edit_window, textvariable=first_name_text_edit)
     first_name_edit.grid(row=0, column=1)
+    global last_name_text_edit
     last_name_text_edit = tk.StringVar()
     last_name_edit = tk.Entry(edit_window, textvariable=last_name_text_edit)
     last_name_edit.grid(row=1, column=1)
+    global phone_text_edit
     phone_text_edit = tk.StringVar()
     phone_edit = tk.Entry(edit_window, textvariable=phone_text_edit)
     phone_edit.grid(row=2, column=1)
+    global birthday_text_edit
     birthday_text_edit = tk.StringVar()
     birthday_edit = tk.Entry(edit_window, textvariable=birthday_text_edit)
     birthday_edit.grid(row=3, column=1)
+    global address_text_edit
     address_text_edit = tk.StringVar()
     address_edit = tk.Entry(edit_window, textvariable=address_text_edit)
     address_edit.grid(row=4, column=1)
+    global city_text_edit
     city_text_edit = tk.StringVar()
     city_edit = tk.Entry(edit_window, textvariable=city_text_edit)
     city_edit.grid(row=5, column=1)
+    global state_text_edit
     state_text_edit = tk.StringVar()
     state_edit = tk.Entry(edit_window, textvariable=state_text_edit)
     state_edit.grid(row=6, column=1)
+    global zipcode_text_edit
     zipcode_text_edit = tk.StringVar()
     zipcode_edit = tk.Entry(edit_window, textvariable=zipcode_text_edit)
     zipcode_edit.grid(row=7, column=1)
@@ -427,17 +437,22 @@ def edit_entry():
 def save_entry():
     conn = sqlite3.connect('address_book.db')
 
+    insert_person_tuple = (first_name_text_edit.get(), last_name_text_edit.get(), phone_text_edit.get(), birthday_text_edit.get())
     with conn:
-        if not first_name_text_edit.get().isalpha():
+        update_person(conn, insert_person_tuple)
+
+    """
+    with conn:
+        if not edit_entry.first_name_text_edit.get().isalpha():
             messagebox.showerror("first name error!", "Alphabet Characters Only")
             raise InvalidNameException("Alphabet characters only!")
-        if not last_name_text_edit.get().isalpha():
+        if not edit_entry.last_name_text_edit.get().isalpha():
             messagebox.showerror("last name error!", "Alphabet Characters Only")
             raise InvalidNameException("Alphabet characters only!")
-        if len(phone_text_edit.get()) != 12:
+        if len(edit_entry.phone_text_edit.get()) != 12:
             messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
             raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
-        for i, c in enumerate(phone_text_edit.get()):
+        for i, c in enumerate(edit_entry.phone_text_edit.get()):
             if i in [3, 7]:
                 if c != '-':
                     messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
@@ -445,48 +460,58 @@ def save_entry():
             elif not c.isalnum():
                 messagebox.showerror("Phone Format Error!", 'phone format "xxx-xxx-xxxx" only!')
                 raise InvalidPhoneNumberFormat('phone format "xxx-xxx-xxxx" only!')
-        if datetime.datetime.strptime(birthday_text_edit.get(), '%m/%d/%Y') != datetime.datetime.strptime(
-                birthday_text_edit.get(), date_format):
+        if datetime.datetime.strptime(edit_entry.birthday_text_edit.get(), '%m/%d/%Y') != datetime.datetime.strptime(
+                edit_entry.birthday_text_edit.get(), date_format):
             messagebox.showerror("Birthday Format Error!", 'birthday format "mm/dd/yyyy" only!')
             raise InvalidBirthDateFormat('birthday format mm/dd/yyyy only!')
         else:
-            phone_checked = phone_text_edit.get()
-            first_name_checked = first_name_text_edit.get()
-            last_name_checked = last_name_text_edit.get()
-            birthday_checked = birthday_text_edit.get()
+            phone_checked_edit = edit_entry.phone_text_edit.get()
+            first_name_checked_edit = edit_entry.first_name_text_edit.get()
+            last_name_checked_edit = edit_entry.last_name_text_edit.get()
+            birthday_checked_edit = edit_entry.birthday_text_edit.get()
+            print(first_name_checked_edit, last_name_checked_edit, phone_checked_edit, birthday_checked_edit,)
 
-            insert_person_tuple = (first_name_checked, last_name_checked, phone_checked, birthday_checked)
+            insert_person_tuple = (first_name_checked_edit, last_name_checked_edit, phone_checked_edit, birthday_checked_edit,)
             update_person(conn, insert_person_tuple)
+            """
 
     conn.commit()
 
     conn1 = sqlite3.connect('address_book.db')
 
+    insert_address_tuple = (address_text_edit.get(), city_text_edit.get(), state_text_edit.get(), zipcode_text_edit.get())
     with conn1:
-        if not city_text_edit.get().isalpha():
+        update_address(conn, insert_address_tuple)
+
+    """
+    with conn1:
+        if not edit_entry.city_text_edit.get().isalpha():
             messagebox.showerror("City Error!", "city must be alphabet characters only")
             raise InvalidCityException("City must be alphabet characters only")
-        if state_text_edit.get() not in state_list:
+        if edit_entry.state_text_edit.get() not in state_list:
             messagebox.showerror("State Error!", "state mist be in capitalized abbreviated form only!")
             raise InvalidStateException("State must be in capitalized abbreviated form only!")
-        if len(zipcode_text_edit.get()) != 5:
-            print(len(zipcode_text_edit.get()))
+        if len(edit_entry.zipcode_text_edit.get()) != 5:
+            print(len(edit_entry.zipcode_text_edit.get()))
             messagebox.showerror("Zipcode Length Error!", "Only five digits allowed!")
             raise ZipcodeException("Zipcode can be 5 digits only!")
-        for i in zipcode_text_edit.get():
+        for i in edit_entry.zipcode_text_edit.get():
             if i not in num_list:
                 messagebox.showerror("Zipcode Character Error!", "Zipcode can only be five digits!")
                 raise ZipcodeException("Zipcode can be 5 numbers only!")
         else:
-            address_checked = address_text.get()
-            city_checked = city_text.get()
-            state_checked = state_text.get()
-            zipcode_checked = zipcode_text.get()
-            insert_address_tuple = (address_checked, city_checked, state_checked, zipcode_checked)
+            address_checked_edit = edit_entry.address_text.get()
+            city_checked_edit = edit_entry.city_text.get()
+            state_checked_edit = edit_entry.state_text.get()
+            zipcode_checked_edit = edit_entry.zipcode_text.get()
+            insert_address_tuple = (address_checked_edit, city_checked_edit, state_checked_edit, zipcode_checked_edit)
             create_address(conn1, insert_address_tuple)
             update_address(conn, insert_address_tuple)
+            """
 
     conn1.commit()
+
+    edit_window.destroy()
 
 
 # removes an entry if the user types the id
